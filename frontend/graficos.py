@@ -31,8 +31,10 @@ TIPOS = {
     "error": ("variación", "cuánto cambia esta medida de una célula a otra"),
     "worst": ("valor más alto", "el promedio de las 3 células con la medida más alta"),
 }
+NOMBRES_SENCILLOS = {"random_forest": "Bosque de decisiones", "regresion_logistica": "Calculadora de probabilidad",
+                     "svm": "Separador de casos", "knn": "Casos parecidos"}
 DESCRIPCION_MODELOS = {
-    "random_forest": "Muchos árboles de decisión que votan juntos para dar la respuesta.",
+    "random_forest": "Muchas pequeñas decisiones en cadena que \"votan\" juntas para dar la respuesta.",
     "regresion_logistica": "Calcula la probabilidad de cada resultado a partir de las medidas.",
     "svm": "Busca la mejor frontera para separar los casos benignos de los malignos.",
     "knn": "Compara el caso nuevo con los casos más parecidos que ya conoce.",
@@ -162,7 +164,7 @@ def resultados(m):
     return limpiar(f"""
     <div>
       <div class="tarjeta">
-        <div class="res-cab"><h3>{NOMBRES[m['modelo']]}</h3><p>{m['n_train']} casos para aprender · {m['n_test']} para probar</p></div>
+        <div class="res-cab"><h3>{NOMBRES_SENCILLOS[m['modelo']]} <small>({NOMBRES[m['modelo']]})</small></h3><p>{m['n_train']} casos para aprender · {m['n_test']} para probar</p></div>
         <p class="params">Opciones usadas: {params}</p>
         {tarjetas_kpi(m)}
       </div>
