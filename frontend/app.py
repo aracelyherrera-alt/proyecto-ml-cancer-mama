@@ -18,7 +18,7 @@ import graficos as g  # noqa: E402
 API = os.getenv("API_URL", "http://127.0.0.1:8000")
 CARPETA = Path(__file__).resolve().parent
 
-st.set_page_config(page_title="Lazo Rosa · Predictor de cáncer de mama", page_icon="🎀", layout="wide")
+st.set_page_config(page_title="Lazo Rosa · Predictor de cáncer de mama", layout="wide")
 st.markdown(f"<style>{(CARPETA / 'estilos.css').read_text(encoding='utf-8')}</style>", unsafe_allow_html=True)
 
 LAZO = ('<svg viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M12 1.8c-2.9 0-4.8 2.1-4.8 4.6 0 2.3 1.5 4.1 '
@@ -40,7 +40,7 @@ def llamar(metodo, ruta, **kw):
         st.stop()
     if r.status_code >= 400:
         detalle = r.json().get("detail", r.text) if r.headers.get("content-type", "").startswith("application/json") else r.text
-        st.error(f"⚠️ {detalle}")
+        st.error(detalle)
         return None
     return r.json()
 
@@ -79,7 +79,7 @@ html(f"""
   </div>
   <div class="hero-visual"><div class="orbe"></div>
     <div class="hero-card"><p class="mini">Último modelo entrenado</p>{tarjeta}</div>
-    <div class="chip a">🎀 Detección temprana</div><div class="chip b">scikit-learn</div></div>
+    <div class="chip a">Detección temprana</div><div class="chip b">scikit-learn</div></div>
 </div>""")
 
 tab_entrenar, tab_comparar, tab_probar, tab_proyecto = st.tabs(
@@ -157,9 +157,9 @@ with tab_probar:
     with col_izq:
         with st.container(border=True):
             b1, b2, b3 = st.columns(3)
-            b1.button("🟢 Benigno", on_click=cargar_ejemplo, args=("benigno",), use_container_width=True)
-            b2.button("🔴 Maligno", on_click=cargar_ejemplo, args=("maligno",), use_container_width=True)
-            b3.button("↺ Promedio", on_click=lambda: poner({v["nombre"]: v["media"] for v in variables}),
+            b1.button("Benigno", on_click=cargar_ejemplo, args=("benigno",), use_container_width=True)
+            b2.button("Maligno", on_click=cargar_ejemplo, args=("maligno",), use_container_width=True)
+            b3.button("Promedio", on_click=lambda: poner({v["nombre"]: v["media"] for v in variables}),
                       use_container_width=True)
             html('<div class="sec-titulo">Medidas principales</div>')
             c1, c2 = st.columns(2)
@@ -213,5 +213,5 @@ with tab_proyecto:
     <div class="persona"><span class="avatar lila">MS</span><div><b>Melany Jessenia Sangoquiza Zapata</b><small>Desarrollo de Software · 5to semestre</small></div></div></div>
     <p class="materia">Proyectos de Machine Learning · Ing. Sergio Granizo MSc.</p></div>""")
 
-html('<div class="pie">🎀 Proyecto final de Proyectos de Machine Learning · 2026<br>'
+html('<div class="pie">Proyecto final de Proyectos de Machine Learning · 2026<br>'
      '<small>Solo con fines académicos. No sustituye la valoración de un profesional de la salud.</small></div>')
