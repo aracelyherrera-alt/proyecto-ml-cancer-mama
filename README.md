@@ -29,11 +29,10 @@ UCI Machine Learning Repository. https://doi.org/10.24432/C5DW2B
 backend/main.py        API con FastAPI
 frontend/              interfaz Streamlit: app.py, graficos.py, estilos.css, static/fuentes/
 ml/entrenamiento.py    carga de datos, modelos y métricas
-ml/generar_figuras.py  gráficos para el informe
+ml/generar_figuras.py  gráficos para el informe (los guarda en docs/figuras, que se crea al correrlo)
 data/wdbc.csv          dataset
 modelos/               modelo entrenado (.joblib)
 tests/                 pruebas con pytest
-docs/                  se crea al correr ml/generar_figuras.py (figuras del informe)
 ```
 
 ## Cómo ejecutarlo
