@@ -33,6 +33,7 @@ ml/generar_figuras.py  gráficos para el informe
 data/wdbc.csv          dataset
 modelos/               modelo entrenado (.joblib)
 tests/                 pruebas con pytest
+docs/                  se crea al correr ml/generar_figuras.py (figuras del informe)
 ```
 
 ## Cómo ejecutarlo
@@ -81,3 +82,38 @@ curl -X POST http://localhost:8000/entrenar -H "Content-Type: application/json" 
 | Regresión logística | 0.9649 | 0.9750 | 0.9286 | 0.9512 | 0.996 |
 | SVM | 0.9737 | 1.0000 | 0.9286 | 0.9630 | 0.995 |
 | KNN | 0.9561 | 0.9744 | 0.9048 | 0.9383 | 0.982 |
+
+## Limitaciones
+- El dataset es pequeño (569 casos) y viene de una sola institución, así que no sabemos qué tan bien funcionaría con pacientes de otros lugares, como Ecuador.
+- Las 30 variables ya vienen calculadas por los autores a partir de imágenes. La aplicación **no** analiza imágenes: el usuario escribe o carga las medidas.
+- Con solo 114 casos de prueba, uno o dos casos cambian los porcentajes. Por eso los resultados de un solo split no deben tomarse como definitivos (la validación cruzada ayuda a verlo mejor).
+- Las clases están algo desbalanceadas (357 benignos y 212 malignos).
+- El mejor modelo tuvo 3 falsos negativos de 42 tumores malignos. En un caso real eso sería lo más grave.
+- El modelo entrenado se guarda en un solo archivo (`modelos/modelo.joblib`). No hay base de datos ni usuarios, y cada entrenamiento nuevo reemplaza al anterior.
+- No usamos GridSearchCV: los parámetros se prueban a mano desde la interfaz.
+- **No es un dispositivo médico** y no sirve para diagnosticar. Es solo un ejercicio académico.
+
+## Trabajo futuro
+- Ajustar el umbral de decisión para subir el recall del maligno.
+- Buscar hiperparámetros con GridSearchCV.
+- Probar con otro dataset de otra institución.
+- Clasificar las imágenes directamente con una red convolucional (CNN).
+- Explicar cada predicción con SHAP.
+- Desplegar la aplicación con Docker.
+
+## Reconocimientos
+- A los autores del dataset: Wolberg, Street y Mangasarian (Universidad de Wisconsin), y al UCI Machine Learning Repository por publicarlo.
+- Al Ing. Sergio Granizo, por la materia Proyectos de Machine Learning.
+- A las librerías que usamos: scikit-learn, FastAPI, Streamlit, pandas, NumPy, joblib, requests y pytest.
+- A las tipografías Playfair Display y DM Sans (licencia OFL, copias en `frontend/static/fuentes/`).
+
+## Referencias
+- Wolberg, W., Mangasarian, O., Street, N. y Street, W. (1995). *Breast Cancer Wisconsin (Diagnostic)*. UCI Machine Learning Repository. https://doi.org/10.24432/C5DW2B
+- Street, W. N., Wolberg, W. H. y Mangasarian, O. L. (1993). Nuclear feature extraction for breast tumor diagnosis. *Proceedings of SPIE*, 1905, 861-870.
+- Breiman, L. (2001). Random forests. *Machine Learning*, 45(1), 5-32.
+- Cortes, C. y Vapnik, V. (1995). Support-vector networks. *Machine Learning*, 20(3), 273-297.
+- Pedregosa, F. et al. (2011). Scikit-learn: Machine learning in Python. *JMLR*, 12, 2825-2830.
+- Documentación de FastAPI (https://fastapi.tiangolo.com) y de Streamlit (https://docs.streamlit.io).
+
+## Uso
+Proyecto con fines académicos. Los datos pertenecen a sus autores y se usan con la cita indicada arriba.
