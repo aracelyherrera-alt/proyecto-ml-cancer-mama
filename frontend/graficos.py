@@ -266,7 +266,7 @@ def resultado_caso(res, valores, resumen):
         <span><i style="background:var(--baya)"></i>promedio maligno</span>
         <span><i style="background:var(--rosa-500);border-radius:50%;width:10px;height:10px"></i>tu caso</span></div>
         <p class="descargo"><b>{cerca} de {len(PRINCIPALES)}</b> medidas principales se parecen más a las de los casos malignos.</p></div>
-      <p class="descargo">Esto es solo una estimación de un programa y no es un diagnóstico. Únicamente un médico puede confirmarlo: si tienes dudas o notas algún cambio en tu cuerpo, acude a consulta.</p>
+      <div class="aviso-clave"><span class="aviso-clave-tit">Importante</span><b>Esto es solo una estimación de un programa y no es un diagnóstico.</b> Únicamente un médico puede confirmarlo: si tienes dudas o notas algún cambio en tu cuerpo, acude a consulta.</div>
     </div>""")
 
 

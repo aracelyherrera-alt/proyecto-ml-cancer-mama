@@ -175,6 +175,10 @@ code { background: var(--rosa-50); padding: 2px 7px; border-radius: 8px; font-si
 .leyenda-dot { display: flex; justify-content: center; gap: 22px; font-size: .78rem; color: var(--ciruela-2); margin-top: 8px; }
 .leyenda-dot i { display: inline-block; width: 3px; height: 12px; margin-right: 7px; vertical-align: -2px; border-radius: 2px; }
 .descargo { font-size: .8rem; color: var(--ciruela-2); text-align: center; margin: 14px 0 0; }
+.aviso-clave { margin: 18px 0 0; padding: 14px 18px; border-radius: 16px; background: #fff0dc; color: #7a4710; border: 1px solid #f2c88f;
+  border-left: 6px solid #e8923a; font-size: .92rem; line-height: 1.5; text-align: left; }
+.aviso-clave .aviso-clave-tit { display: block; margin-bottom: 4px; font-size: .72rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #b45f12; }
+.aviso-clave b { color: #5e3508; }
 
 /* ---------- proyecto ---------- */
 .dona { display: flex; flex-direction: column; align-items: center; }
