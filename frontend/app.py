@@ -110,31 +110,33 @@ with tab_entrenar:
     with col_conf:
         with st.container(border=True):
             html('<div class="sec-titulo">Configuración</div>')
-            modelo = st.radio("Método", info["disponibles"], format_func=lambda x: g.NOMBRES[x])
-            st.caption(g.DESCRIPCION_MODELOS[modelo])
+            modelo = st.radio("¿Qué método quieres usar?", info["disponibles"], format_func=lambda x: g.NOMBRES_SENCILLOS[x])
+            st.caption(f"Nombre técnico: {g.NOMBRES[modelo]}. {g.DESCRIPCION_MODELOS[modelo]}")
             params = {}
-            if modelo == "random_forest":
-                params["n_estimators"] = st.slider("Número de árboles", 10, 500, 100, 10,
-                                                   help="Más árboles suelen dar resultados más estables, pero tardan más.")
-                prof = st.slider("Detalle máximo de cada árbol (0 = sin límite)", 0, 30, 0,
-                                help="Qué tan detallado puede ser cada árbol de decisión.")
-                params["max_depth"] = None if prof == 0 else prof
-            elif modelo == "regresion_logistica":
-                params["C"] = st.select_slider("Rigidez del modelo (C)", [0.01, 0.1, 1.0, 10.0, 100.0], 1.0, help=AYUDA_C)
-                params["max_iter"] = st.slider("Intentos máximos de ajuste", 100, 3000, 1000, 100,
-                                               help="Cuántas veces puede intentar mejorar antes de detenerse.")
-            elif modelo == "svm":
-                params["C"] = st.select_slider("Rigidez del modelo (C)", [0.01, 0.1, 1.0, 10.0, 100.0], 1.0, help=AYUDA_C)
-                params["kernel"] = st.selectbox("Forma de separar los casos (kernel)", ["rbf", "linear", "poly", "sigmoid"],
-                                                help="rbf: frontera curva. linear: línea recta. poly y sigmoid: otras formas curvas.")
-            elif modelo == "knn":
-                params["n_neighbors"] = st.slider("Número de vecinos (k)", 1, 30, 5,
-                                                  help="Cuántos casos parecidos se consultan para decidir.")
-            test_size = st.slider("Casos reservados para la prueba", 0.10, 0.50, 0.20, 0.05,
-                                  help="Parte de los casos que el programa no ve al aprender y que se usan para evaluarlo. El resto se usa para entrenar.")
-            semilla = st.number_input("Número del sorteo (semilla)", 0, 9999, 42,
-                                      help="Fija cómo se sortean los casos. Con el mismo número se obtienen los mismos resultados.")
-            if st.button("Entrenar modelo", type="primary", use_container_width=True):
+            with st.expander("Opciones avanzadas (no hace falta tocarlas)"):
+                st.caption("Ya vienen con valores recomendados. Cámbialas solo si conoces Machine Learning.")
+                if modelo == "random_forest":
+                    params["n_estimators"] = st.slider("Cantidad de árboles de decisión", 10, 500, 100, 10,
+                                                       help="Más árboles suelen dar resultados más estables, pero tardan más.")
+                    prof = st.slider("Detalle máximo de cada árbol (0 = sin límite)", 0, 30, 0,
+                                     help="Qué tan detallado puede ser cada árbol de decisión.")
+                    params["max_depth"] = None if prof == 0 else prof
+                elif modelo == "regresion_logistica":
+                    params["C"] = st.select_slider("Rigidez del modelo (C)", [0.01, 0.1, 1.0, 10.0, 100.0], 1.0, help=AYUDA_C)
+                    params["max_iter"] = st.slider("Intentos máximos de ajuste", 100, 3000, 1000, 100,
+                                                   help="Cuántas veces puede intentar mejorar antes de detenerse.")
+                elif modelo == "svm":
+                    params["C"] = st.select_slider("Rigidez del modelo (C)", [0.01, 0.1, 1.0, 10.0, 100.0], 1.0, help=AYUDA_C)
+                    params["kernel"] = st.selectbox("Forma de separar los casos (kernel)", ["rbf", "linear", "poly", "sigmoid"],
+                                                    help="rbf: frontera curva. linear: línea recta. poly y sigmoid: otras formas curvas.")
+                elif modelo == "knn":
+                    params["n_neighbors"] = st.slider("Cuántos casos parecidos se consultan (k)", 1, 30, 5,
+                                                      help="Cuántos casos parecidos se consultan para decidir.")
+                test_size = st.slider("Casos reservados para la prueba", 0.10, 0.50, 0.20, 0.05,
+                                      help="Parte de los casos que el programa no ve al aprender y que se usan para evaluarlo. El resto se usa para entrenar.")
+                semilla = st.number_input("Número del sorteo (semilla)", 0, 9999, 42,
+                                          help="Fija cómo se sortean los casos. Con el mismo número se obtienen los mismos resultados.")
+            if st.button("Entrenar este método", type="primary", use_container_width=True):
                 with st.spinner("Entrenando..."):
                     res = llamar("POST", "/entrenar", json={"modelo": modelo, "parametros": params,
                                                             "test_size": test_size, "semilla": int(semilla)})
@@ -148,7 +150,7 @@ with tab_entrenar:
             glosario()
         else:
             html(f'<div class="tarjeta vacio">{LAZO}<h3>Todavía no hay resultados</h3>'
-                 '<p>Presiona <b>Entrenar modelo</b> y aquí aparecerán los resultados, los aciertos y errores del programa y la curva ROC.</p></div>')
+                 '<p>Presiona <b>Entrenar este método</b> y aquí aparecerán los resultados, los aciertos y errores del programa y la curva ROC.</p></div>')
 
 # ================================================================== COMPARAR
 with tab_comparar:
