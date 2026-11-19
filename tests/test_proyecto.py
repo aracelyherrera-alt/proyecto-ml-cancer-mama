@@ -51,4 +51,4 @@ def test_graficos_del_frontend():
     h = g.resultados(m)
     assert "<svg" in h and "Random Forest" in h and "\n" not in h
     comp = cliente.post("/comparar", json={}).json()
-    assert "Accuracy" in g.comparacion(comp)
+    assert "Aciertos" in g.comparacion(comp)

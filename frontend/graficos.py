@@ -13,6 +13,53 @@ PRINCIPALES = ["worst_area", "worst_concave_points", "worst_radius",
                "mean_concave_points", "worst_perimeter", "mean_radius"]
 
 
+# Nombres en lenguaje sencillo para las 30 variables del dataset (mean_*, *_error, worst_*)
+BASES = {
+    "radius": ("Radio", "distancia del centro de la célula hasta su borde"),
+    "texture": ("Textura", "qué tan variada se ve la superficie de la célula en la imagen"),
+    "perimeter": ("Perímetro", "largo del contorno de la célula"),
+    "area": ("Tamaño (área)", "cuánto espacio ocupa la célula"),
+    "smoothness": ("Suavidad del borde", "qué tan liso o irregular es el borde"),
+    "compactness": ("Compacidad", "qué tan apretada o compacta es la forma"),
+    "concavity": ("Hundimientos del borde", "qué tan profundas son las partes del borde que se hunden hacia adentro"),
+    "concave_points": ("Puntos de hundimiento", "cuántos puntos del borde se hunden hacia adentro"),
+    "symmetry": ("Simetría", "qué tan pareja es la forma de un lado y del otro"),
+    "fractal_dimension": ("Irregularidad del contorno", "qué tan complicado o dentado es el contorno"),
+}
+TIPOS = {
+    "mean": ("promedio", "el promedio de todas las células medidas"),
+    "error": ("variación", "cuánto cambia esta medida de una célula a otra"),
+    "worst": ("valor más alto", "el promedio de las 3 células con la medida más alta"),
+}
+DESCRIPCION_MODELOS = {
+    "random_forest": "Muchos árboles de decisión que votan juntos para dar la respuesta.",
+    "regresion_logistica": "Calcula la probabilidad de cada resultado a partir de las medidas.",
+    "svm": "Busca la mejor frontera para separar los casos benignos de los malignos.",
+    "knn": "Compara el caso nuevo con los casos más parecidos que ya conoce.",
+}
+
+
+def _partes(nombre):
+    if nombre.startswith("mean_"):
+        return nombre[5:], "mean"
+    if nombre.startswith("worst_"):
+        return nombre[6:], "worst"
+    return nombre.removesuffix("_error"), "error"
+
+
+def etiqueta(nombre):
+    """mean_radius -> 'Radio (promedio)'"""
+    base, tipo = _partes(nombre)
+    return f"{BASES[base][0]} ({TIPOS[tipo][0]})" if base in BASES else nombre
+
+
+def ayuda(nombre):
+    base, tipo = _partes(nombre)
+    if base not in BASES:
+        return None
+    return f"{BASES[base][0]}: {BASES[base][1]}. Aquí se usa {TIPOS[tipo][1]}."
+
+
 def limpiar(html: str) -> str:
     """Quita saltos de línea y sangrías: Markdown trataría líneas con 4 espacios como código."""
     return re.sub(r"\s*\n\s*", " ", html).strip()
@@ -44,11 +91,11 @@ def anillo(valor, color, tam=96):
 
 
 def tarjetas_kpi(m):
-    kpis = [("Accuracy", m["accuracy"], "aciertos totales", "#dc5f89"),
-            ("Precisión", m["precision"], "de los que dijo maligno, ¿cuántos lo eran?", "#8f74d6"),
-            ("Recall", m["recall"], "de los malignos, ¿cuántos detectó?", "#4fae91"),
-            ("F1", m["f1"], "equilibrio entre precisión y recall", "#f2a366"),
-            ("AUC-ROC", m["roc_auc"], f"validación cruzada: {pct(m['cv_media'])} ± {pct(m['cv_desv'])}", "#c24572")]
+    kpis = [("Aciertos", m["accuracy"], "casos que acertó en total (accuracy)", "#dc5f89"),
+            ("Precisión", m["precision"], "cuando dijo maligno, ¿cuántas veces tenía razón?", "#8f74d6"),
+            ("Detección", m["recall"], "de los casos malignos, ¿a cuántos encontró? (recall)", "#4fae91"),
+            ("Equilibrio", m["f1"], "balance entre precisión y detección (F1)", "#f2a366"),
+            ("Distinción", m["roc_auc"], f"qué tan bien separa los casos (AUC). Prueba repetida 5 veces: {pct(m['cv_media'])} ± {pct(m['cv_desv'])}", "#c24572")]
     return '<div class="kpis">' + "".join(
         f'<div class="kpi">{anillo(v, col)}<div class="t">{t}</div><div class="d">{d}</div></div>'
         for t, v, d, col in kpis) + "</div>"
@@ -65,9 +112,9 @@ def matriz_confusion(cm):
 
     fn = cm[1][0]
     if fn == 0:
-        nota = '<div class="nota ok">No se le pasó ningún tumor maligno (0 falsos negativos).</div>'
+        nota = '<div class="nota ok">El programa no dejó pasar ningún tumor maligno (0 falsos negativos).</div>'
     else:
-        nota = (f'<div class="nota warn">Se le pasaron <b>{fn}</b> tumor(es) maligno(s) (falsos negativos). '
+        nota = (f'<div class="nota warn">El programa dejó pasar <b>{fn}</b> tumor(es) maligno(s) como si fueran benignos (falsos negativos). '
                 'Es el error más delicado en un problema médico.</div>')
     return ('<div class="matriz"><span></span><span class="eje">Predicho benigno</span><span class="eje">Predicho maligno</span>'
             f'<span class="eje v">Real benigno</span>{celda(cm[0][0], "acertó")}{celda(cm[0][1], "falsa alarma")}'
@@ -101,7 +148,7 @@ def curva_roc(roc, auc):
 def barras_importancia(imp):
     mx = max(i["valor"] for i in imp) or 1e-9
     filas = "".join(
-        f'<div class="bh"><span class="nombre">{i["variable"]}</span><div class="pista">'
+        f'<div class="bh"><span class="nombre" title="{ayuda(i["variable"]) or ""}">{etiqueta(i["variable"])}</span><div class="pista">'
         f'<div class="relleno" style="width:{i["valor"] / mx * 100:.1f}%"></div></div><span class="val">{i["valor"]:.3f}</span></div>'
         for i in imp)
     return f'<div class="barras-h">{filas}</div>'
@@ -110,18 +157,18 @@ def barras_importancia(imp):
 # ------------------------------------------------------------------ bloque completo de resultados
 def resultados(m):
     params = " ".join(f"<code>{k}={'None' if v is None else v}</code>" for k, v in m["parametros"].items())
-    imp = (f'<div class="tarjeta"><h4>Variables que más pesan en el modelo (top 10)</h4>{barras_importancia(m["importancias"])}</div>'
+    imp = (f'<div class="tarjeta"><h4>Medidas que más influyen en la decisión (las 10 principales)</h4>{barras_importancia(m["importancias"])}</div>'
            if m.get("importancias") else "")
     return limpiar(f"""
     <div>
       <div class="tarjeta">
-        <div class="res-cab"><h3>{NOMBRES[m['modelo']]}</h3><p>{m['n_train']} casos de entrenamiento · {m['n_test']} de prueba</p></div>
-        <p class="params">Parámetros: {params}</p>
+        <div class="res-cab"><h3>{NOMBRES[m['modelo']]}</h3><p>{m['n_train']} casos para aprender · {m['n_test']} para probar</p></div>
+        <p class="params">Opciones usadas: {params}</p>
         {tarjetas_kpi(m)}
       </div>
       <div class="dos">
-        <div class="tarjeta"><h4>Matriz de confusión</h4>{matriz_confusion(m['matriz_confusion'])}</div>
-        <div class="tarjeta"><h4>Curva ROC</h4>{curva_roc(m['roc'], m['roc_auc'])}</div>
+        <div class="tarjeta"><h4>Aciertos y errores (matriz de confusión)</h4>{matriz_confusion(m['matriz_confusion'])}</div>
+        <div class="tarjeta"><h4>Curva ROC: qué tan bien distingue</h4>{curva_roc(m['roc'], m['roc_auc'])}</div>
       </div>
       {imp}
     </div>""")
@@ -129,7 +176,7 @@ def resultados(m):
 
 # ------------------------------------------------------------------ comparación de modelos
 def comparacion(lista):
-    metricas = [("accuracy", "Accuracy"), ("precision", "Precisión"), ("recall", "Recall"), ("f1", "F1")]
+    metricas = [("accuracy", "Aciertos"), ("precision", "Precisión"), ("recall", "Detección"), ("f1", "Equilibrio")]
     x0, x1, y0, y1, lo, hi = 64, 840, 330, 40, 0.85, 1.0
     py = lambda v: y0 - (min(max(v, lo), hi) - lo) / (hi - lo) * (y0 - y1)
     ancho_g = (x1 - x0) / len(metricas)
@@ -152,8 +199,8 @@ def comparacion(lista):
               f'font-family="Playfair Display,serif" font-weight="700" font-size="17" fill="#3f2136">{nombre}</text>')
     s += '</svg><p class="nota-eje">El eje vertical empieza en 0.85 para que se noten las diferencias.</p>'
 
-    cols = [("accuracy", "Accuracy"), ("precision", "Precisión"), ("recall", "Recall"), ("f1", "F1"),
-            ("roc_auc", "AUC"), ("cv_media", "CV 5 folds")]
+    cols = [("accuracy", "Aciertos"), ("precision", "Precisión"), ("recall", "Detección"), ("f1", "Equilibrio"),
+            ("roc_auc", "Distinción (AUC)"), ("cv_media", "Prueba repetida 5 veces")]
     mejor = {k: max(m[k] for m in lista) for k, _ in cols}
     cab = "<th>Modelo</th>" + "".join(f"<th>{n}</th>" for _, n in cols)
     cuerpo = ""
@@ -164,12 +211,12 @@ def comparacion(lista):
     tabla = f'<div class="tabla-wrap"><table class="tabla"><thead><tr>{cab}</tr></thead><tbody>{cuerpo}</tbody></table></div>'
 
     top = [NOMBRES[m["modelo"]] for m in lista if abs(m["accuracy"] - mejor["accuracy"]) < 1e-9]
-    frase = (f'<b>{" y ".join(top)}</b> empatan con el mayor accuracy ({pct(mejor["accuracy"], 2)})' if len(top) > 1
-             else f'<b>{top[0]}</b> tiene el mayor accuracy ({pct(mejor["accuracy"], 2)})')
+    frase = (f'<b>{" y ".join(top)}</b> empatan con el mayor porcentaje de aciertos ({pct(mejor["accuracy"], 2)})' if len(top) > 1
+             else f'<b>{top[0]}</b> tiene el mayor porcentaje de aciertos ({pct(mejor["accuracy"], 2)})')
     leyenda = "".join(f'<span><i style="background:{COLORES[m["modelo"]]}"></i>{NOMBRES[m["modelo"]]}</span>' for m in lista)
     return limpiar(f"""
     <div>
-      <div class="ganador"><p>{frase}<br><small>Ojo: con pocos datos de prueba las diferencias son de uno o dos casos, mira también la validación cruzada.</small></p></div>
+      <div class="ganador"><p>{frase}<br><small>Ojo: con pocos datos de prueba las diferencias son de uno o dos casos, mira también la prueba repetida 5 veces (validación cruzada).</small></p></div>
       <div class="tarjeta"><div class="leyenda">{leyenda}</div>{s}</div>
       <div class="tarjeta">{tabla}</div>
     </div>""")
@@ -189,7 +236,7 @@ def medidor(pm, es_maligno):
             f'stroke-dasharray="{largo:.1f}" stroke-dashoffset="{largo * (1 - pm):.1f}" style="--full:{largo:.1f}"/>'
             f'<circle cx="{mx:.1f}" cy="{my:.1f}" r="11" fill="#fff" stroke="{borde}" stroke-width="5"/>'
             f'<text x="150" y="140" text-anchor="middle" font-family="Playfair Display,serif" font-weight="700" font-size="40" fill="#3f2136">{pct(pm)}</text>'
-            '<text x="150" y="162" text-anchor="middle" font-size="12" fill="#6b4560">probabilidad de maligno</text>'
+            '<text x="150" y="162" text-anchor="middle" font-size="12" fill="#6b4560">probabilidad de que sea maligno</text>'
             '<text x="40" y="180" text-anchor="middle" font-size="10.5" fill="#6b4560">0%</text>'
             '<text x="260" y="180" text-anchor="middle" font-size="10.5" fill="#6b4560">100%</text></svg>')
 
@@ -204,20 +251,20 @@ def resultado_caso(res, valores, resumen):
         b, mm = resumen["media_benigno"][n], resumen["media_maligno"][n]
         t = (valores[n] - b) / (mm - b)
         cerca += t > 0.5
-        filas += (f'<div class="fila-dot"><span class="nombre">{n}</span><div class="pista-dot">'
+        filas += (f'<div class="fila-dot"><span class="nombre">{etiqueta(n)}</span><div class="pista-dot">'
                   f'<i class="marca-ref b" style="left:{pos(0)}%"></i><i class="marca-ref m" style="left:{pos(1)}%"></i>'
-                  f'<i class="punto" style="left:{pos(t):.1f}%" title="{n}: {fmt_num(valores[n])}"></i></div></div>')
+                  f'<i class="punto" style="left:{pos(t):.1f}%" title="{etiqueta(n)}: {fmt_num(valores[n])}"></i></div></div>')
     return limpiar(f"""
     <div class="tarjeta salida">
-      <div class="veredicto {'m' if es_m else 'b'}"><span class="tag">Resultado del modelo</span><h3>{res['diagnostico']}</h3>
+      <div class="veredicto {'m' if es_m else 'b'}"><span class="tag">Lo que estima el programa</span><h3>Parece {res['diagnostico'].lower()}</h3>
         {medidor(res['probabilidad_maligno'], es_m)}
-        <p class="sub">El modelo está {pct(conf)} seguro de que es <b>{res['diagnostico'].lower()}</b>.</p></div>
+        <p class="sub">El programa estima, con {pct(conf)} de seguridad, que el tumor es probablemente <b>{res['diagnostico'].lower()}</b> ({'canceroso' if es_m else 'no canceroso'}).</p></div>
       <div class="comparacion"><h4>¿Cómo se compara con los casos reales?</h4>{filas}
         <div class="leyenda-dot"><span><i style="background:var(--menta)"></i>promedio benigno</span>
         <span><i style="background:var(--baya)"></i>promedio maligno</span>
         <span><i style="background:var(--rosa-500);border-radius:50%;width:10px;height:10px"></i>tu caso</span></div>
-        <p class="descargo"><b>{cerca} de {len(PRINCIPALES)}</b> medidas principales están más cerca del promedio de los malignos.</p></div>
-      <p class="descargo">Resultado académico. No reemplaza un diagnóstico médico.</p>
+        <p class="descargo"><b>{cerca} de {len(PRINCIPALES)}</b> medidas principales se parecen más a las de los casos malignos.</p></div>
+      <p class="descargo">Esto es solo una estimación de un programa y no es un diagnóstico. Únicamente un médico puede confirmarlo: si tienes dudas o notas algún cambio en tu cuerpo, acude a consulta.</p>
     </div>""")
 
 
