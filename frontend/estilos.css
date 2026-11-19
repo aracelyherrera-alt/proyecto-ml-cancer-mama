@@ -141,7 +141,7 @@ code { background: var(--rosa-50); padding: 2px 7px; border-radius: 8px; font-si
 /* ---------- comparar ---------- */
 .ganador { display: flex; align-items: center; gap: 14px; padding: 16px 22px; border-radius: 20px; margin-bottom: 18px;
   background: linear-gradient(120deg, var(--rosa-100), #efe6ff); border: 1px solid var(--borde); }
-.ganador .copa { font-size: 1.8rem; } .ganador p { margin: 0; } .ganador small { color: var(--ciruela-2); }
+.ganador p { margin: 0; } .ganador small { color: var(--ciruela-2); }
 .leyenda { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-bottom: 8px; font-size: .9rem; }
 .leyenda i { display: inline-block; width: 12px; height: 12px; border-radius: 4px; margin-right: 8px; vertical-align: -1px; }
 .nota-eje { font-size: .8rem; color: var(--ciruela-2); text-align: center; margin: 4px 0 0; }

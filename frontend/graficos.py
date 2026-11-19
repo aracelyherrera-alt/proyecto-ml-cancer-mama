@@ -169,7 +169,7 @@ def comparacion(lista):
     leyenda = "".join(f'<span><i style="background:{COLORES[m["modelo"]]}"></i>{NOMBRES[m["modelo"]]}</span>' for m in lista)
     return limpiar(f"""
     <div>
-      <div class="ganador"><span class="copa">🏆</span><p>{frase}<br><small>Ojo: con pocos datos de prueba las diferencias son de uno o dos casos, mira también la validación cruzada.</small></p></div>
+      <div class="ganador"><p>{frase}<br><small>Ojo: con pocos datos de prueba las diferencias son de uno o dos casos, mira también la validación cruzada.</small></p></div>
       <div class="tarjeta"><div class="leyenda">{leyenda}</div>{s}</div>
       <div class="tarjeta">{tabla}</div>
     </div>""")
