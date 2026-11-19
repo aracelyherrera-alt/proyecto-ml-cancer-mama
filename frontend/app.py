@@ -45,6 +45,22 @@ def llamar(metodo, ruta, **kw):
     return r.json()
 
 
+AYUDA_C = ("Valores bajos hacen un modelo más simple y flexible; valores altos hacen que se ajuste "
+           "más a los casos con los que aprende.")
+
+
+def glosario():
+    with st.expander("¿Qué significan estos números?"):
+        st.markdown(
+            "- **Aciertos (accuracy):** de todos los casos de prueba, en cuántos acertó el programa.\n"
+            "- **Precisión:** cuando el programa dijo \"maligno\", ¿cuántas veces tenía razón?\n"
+            "- **Detección (recall):** de los casos que sí eran malignos, ¿a cuántos encontró? Es la medida más importante en medicina.\n"
+            "- **Equilibrio (F1):** un solo número que combina precisión y detección.\n"
+            "- **Distinción (AUC):** qué tan bien separa los casos benignos de los malignos. Mientras más cerca de 1, mejor.\n"
+            "- **Prueba repetida 5 veces (validación cruzada):** se repite la evaluación con 5 grupos distintos de casos para confirmar que el resultado no fue casualidad."
+        )
+
+
 # ------------------------------------------------------------------ datos iniciales
 info = llamar("GET", "/modelos")
 variables = llamar("GET", "/variables")
@@ -63,7 +79,7 @@ metricas = st.session_state.get("metricas")
 if metricas:
     tarjeta = (f'<div style="width:120px;margin:0 auto">{g.anillo(metricas["accuracy"], "#dc5f89", 120)}</div>'
                f'<p style="font-family:var(--serif);font-size:1.25rem;font-weight:700;margin:6px 0 2px">{g.NOMBRES[metricas["modelo"]]}</p>'
-               f'<p class="vacio-mini">Accuracy en datos de prueba<br>Recall {g.pct(metricas["recall"])} · AUC {metricas["roc_auc"]:.3f}</p>')
+               f'<p class="vacio-mini">Aciertos en casos de prueba<br>Malignos detectados: {g.pct(metricas["recall"])}</p>')
 else:
     tarjeta = '<p class="vacio-mini">Aún no hay un modelo.<br>Entrena el primero y aparecerá aquí.</p>'
 html(f"""
@@ -72,10 +88,10 @@ html(f"""
   <div>
     <p class="eyebrow">Proyecto final · Machine Learning</p>
     <h1>Predictor de <em>cáncer de mama</em></h1>
-    <p class="lead">Un modelo de inteligencia artificial que aprende de {resumen['total']} casos reales y clasifica un tumor como
-    <b>benigno</b> o <b>maligno</b>. Entrénalo, compáralo y pruébalo tú misma.</p>
+    <p class="lead">Un programa de inteligencia artificial que aprendió de {resumen['total']} casos reales de tumores de mama y estima si un tumor
+    parece <b>benigno</b> (no canceroso) o <b>maligno</b> (canceroso). Entrénalo, compáralo y pruébalo.</p>
     <div class="hero-datos"><div><b>{resumen['total']}</b><span>casos reales</span></div>
-    <div><b>30</b><span>variables</span></div><div><b>4</b><span>algoritmos</span></div></div>
+    <div><b>30</b><span>medidas</span></div><div><b>4</b><span>métodos</span></div></div>
   </div>
   <div class="hero-visual"><div class="orbe"></div>
     <div class="hero-card"><p class="mini">Último modelo entrenado</p>{tarjeta}</div>
@@ -88,28 +104,36 @@ tab_entrenar, tab_comparar, tab_probar, tab_proyecto = st.tabs(
 # ================================================================== ENTRENAR
 with tab_entrenar:
     html('<div class="cab"><p class="eyebrow">Paso 1</p><h2>Entrena tu <em>modelo</em></h2>'
-         '<p>Elige un algoritmo, ajusta sus parámetros y mira cómo le va con datos que nunca vio.</p></div>')
+         '<p>Elige un método, ajusta sus opciones y mira cómo le va con casos que nunca vio.</p></div>')
     col_conf, col_res = st.columns([1, 2.5], gap="large")
 
     with col_conf:
         with st.container(border=True):
             html('<div class="sec-titulo">Configuración</div>')
-            modelo = st.radio("Algoritmo", info["disponibles"], format_func=lambda x: g.NOMBRES[x])
+            modelo = st.radio("Método", info["disponibles"], format_func=lambda x: g.NOMBRES[x])
+            st.caption(g.DESCRIPCION_MODELOS[modelo])
             params = {}
             if modelo == "random_forest":
-                params["n_estimators"] = st.slider("Número de árboles", 10, 500, 100, 10)
-                prof = st.slider("Profundidad máxima (0 = sin límite)", 0, 30, 0)
+                params["n_estimators"] = st.slider("Número de árboles", 10, 500, 100, 10,
+                                                   help="Más árboles suelen dar resultados más estables, pero tardan más.")
+                prof = st.slider("Detalle máximo de cada árbol (0 = sin límite)", 0, 30, 0,
+                                help="Qué tan detallado puede ser cada árbol de decisión.")
                 params["max_depth"] = None if prof == 0 else prof
             elif modelo == "regresion_logistica":
-                params["C"] = st.select_slider("C (regularización)", [0.01, 0.1, 1.0, 10.0, 100.0], 1.0)
-                params["max_iter"] = st.slider("Iteraciones máximas", 100, 3000, 1000, 100)
+                params["C"] = st.select_slider("Rigidez del modelo (C)", [0.01, 0.1, 1.0, 10.0, 100.0], 1.0, help=AYUDA_C)
+                params["max_iter"] = st.slider("Intentos máximos de ajuste", 100, 3000, 1000, 100,
+                                               help="Cuántas veces puede intentar mejorar antes de detenerse.")
             elif modelo == "svm":
-                params["C"] = st.select_slider("C (regularización)", [0.01, 0.1, 1.0, 10.0, 100.0], 1.0)
-                params["kernel"] = st.selectbox("Kernel", ["rbf", "linear", "poly", "sigmoid"])
+                params["C"] = st.select_slider("Rigidez del modelo (C)", [0.01, 0.1, 1.0, 10.0, 100.0], 1.0, help=AYUDA_C)
+                params["kernel"] = st.selectbox("Forma de separar los casos (kernel)", ["rbf", "linear", "poly", "sigmoid"],
+                                                help="rbf: frontera curva. linear: línea recta. poly y sigmoid: otras formas curvas.")
             elif modelo == "knn":
-                params["n_neighbors"] = st.slider("Número de vecinos (k)", 1, 30, 5)
-            test_size = st.slider("Datos de prueba", 0.10, 0.50, 0.20, 0.05, help="El resto se usa para entrenar.")
-            semilla = st.number_input("Semilla aleatoria", 0, 9999, 42)
+                params["n_neighbors"] = st.slider("Número de vecinos (k)", 1, 30, 5,
+                                                  help="Cuántos casos parecidos se consultan para decidir.")
+            test_size = st.slider("Casos reservados para la prueba", 0.10, 0.50, 0.20, 0.05,
+                                  help="Parte de los casos que el programa no ve al aprender y que se usan para evaluarlo. El resto se usa para entrenar.")
+            semilla = st.number_input("Número del sorteo (semilla)", 0, 9999, 42,
+                                      help="Fija cómo se sortean los casos. Con el mismo número se obtienen los mismos resultados.")
             if st.button("Entrenar modelo", type="primary", use_container_width=True):
                 with st.spinner("Entrenando..."):
                     res = llamar("POST", "/entrenar", json={"modelo": modelo, "parametros": params,
@@ -121,24 +145,26 @@ with tab_entrenar:
     with col_res:
         if metricas:
             html(g.resultados(metricas))
+            glosario()
         else:
             html(f'<div class="tarjeta vacio">{LAZO}<h3>Todavía no hay resultados</h3>'
-                 '<p>Presiona <b>Entrenar modelo</b> y aquí aparecerán las métricas, la matriz de confusión y la curva ROC.</p></div>')
+                 '<p>Presiona <b>Entrenar modelo</b> y aquí aparecerán los resultados, los aciertos y errores del programa y la curva ROC.</p></div>')
 
 # ================================================================== COMPARAR
 with tab_comparar:
     html('<div class="cab"><p class="eyebrow">Paso 2</p><h2>Los cuatro algoritmos, <em>frente a frente</em></h2>'
-         '<p>Entrena los cuatro con sus parámetros por defecto y los mismos datos de prueba para ver cuál rinde mejor.</p></div>')
+         '<p>Entrena los cuatro métodos con sus opciones por defecto y los mismos casos de prueba para ver cuál rinde mejor.</p></div>')
     if st.button("Comparar los 4 modelos", type="primary"):
         with st.spinner("Entrenando los 4 modelos..."):
             st.session_state["comp"] = llamar("POST", "/comparar", json={"test_size": 0.2, "semilla": 42})
     if st.session_state.get("comp"):
         html(g.comparacion(st.session_state["comp"]))
+        glosario()
 
 # ================================================================== PROBAR UN CASO
 with tab_probar:
     html('<div class="cab"><p class="eyebrow">Paso 3</p><h2>Prueba un <em>caso nuevo</em></h2>'
-         '<p>Mueve las medidas del núcleo celular o carga un caso real del dataset, y el modelo entrenado te dirá qué piensa.</p></div>')
+         '<p>Estas medidas salen del análisis de una muestra en laboratorio, no se pueden medir en casa. Mueve los controles o carga un ejemplo real y el programa estimará si el tumor parece benigno o maligno.</p></div>')
 
     rango = {v["nombre"]: v for v in variables}
     for v in variables:                                   # valores iniciales = promedio
@@ -157,23 +183,23 @@ with tab_probar:
     with col_izq:
         with st.container(border=True):
             b1, b2, b3 = st.columns(3)
-            b1.button("Benigno", on_click=cargar_ejemplo, args=("benigno",), use_container_width=True)
-            b2.button("Maligno", on_click=cargar_ejemplo, args=("maligno",), use_container_width=True)
-            b3.button("Promedio", on_click=lambda: poner({v["nombre"]: v["media"] for v in variables}),
+            b1.button("Ejemplo benigno", on_click=cargar_ejemplo, args=("benigno",), use_container_width=True)
+            b2.button("Ejemplo maligno", on_click=cargar_ejemplo, args=("maligno",), use_container_width=True)
+            b3.button("Valores promedio", on_click=lambda: poner({v["nombre"]: v["media"] for v in variables}),
                       use_container_width=True)
-            html('<div class="sec-titulo">Medidas principales</div>')
+            html('<div class="sec-titulo">Medidas principales de la célula</div>')
             c1, c2 = st.columns(2)
             for i, n in enumerate(g.PRINCIPALES):
                 with (c1 if i % 2 == 0 else c2):
                     v = rango[n]
-                    st.slider(n, float(v["min"]), float(v["max"]), key=f"v_{n}", step=float(v["max"] - v["min"]) / 300,
-                              format="%.4g")
-            with st.expander("Ver las otras 24 variables"):
+                    st.slider(g.etiqueta(n), float(v["min"]), float(v["max"]), key=f"v_{n}", step=float(v["max"] - v["min"]) / 300,
+                              format="%.4g", help=g.ayuda(n))
+            with st.expander("Ver las otras 24 medidas"):
                 resto = [v["nombre"] for v in variables if v["nombre"] not in g.PRINCIPALES]
                 e1, e2 = st.columns(2)
                 for i, n in enumerate(resto):
                     with (e1 if i % 2 == 0 else e2):
-                        st.number_input(n, key=f"v_{n}", format="%.5f")
+                        st.number_input(g.etiqueta(n), key=f"v_{n}", format="%.5f", help=g.ayuda(n))
             if st.button("Predecir", type="primary", use_container_width=True):
                 valores = {v["nombre"]: float(st.session_state[f"v_{v['nombre']}"]) for v in variables}
                 res = llamar("POST", "/predecir", json={"datos": valores})
@@ -196,10 +222,10 @@ with tab_proyecto:
         html(f"""<div class="tarjeta"><h3>El dataset</h3>
         <div style="display:grid;grid-template-columns:210px 1fr;gap:24px;align-items:center">
         {g.dona(resumen)}
-        <div><p><b>Breast Cancer Wisconsin (Diagnostic)</b>. Las 30 variables se calcularon a partir de imágenes digitalizadas de
-        punciones con aguja fina (FNA) de masas mamarias. Para 10 medidas del núcleo celular (radio, textura, perímetro, área,
-        suavidad, compacidad, concavidad, puntos cóncavos, simetría y dimensión fractal) se guarda el promedio, el error estándar
-        y el peor valor.</p>
+        <div><p><b>Breast Cancer Wisconsin (Diagnostic)</b>. Las 30 medidas se calcularon a partir de imágenes de
+        muestras tomadas con una aguja fina (punción) de bultos en la mama. De cada célula se miden 10 características (radio, textura, perímetro, tamaño,
+        suavidad, compacidad, hundimientos del borde, puntos de hundimiento, simetría e irregularidad del contorno) y de cada una se guarda el promedio,
+        la variación y el valor más alto.</p>
         <p class="fuente">Wolberg, W., Mangasarian, O., Street, N. y Street, W. (1995). UCI Machine Learning Repository.
         <a href="https://doi.org/10.24432/C5DW2B" target="_blank">doi.org/10.24432/C5DW2B</a></p></div></div></div>""")
     with c2:
@@ -207,7 +233,7 @@ with tab_proyecto:
         <li><span><b>Esta interfaz</b> (Streamlit, en Python) envía los parámetros a la API.</span></li>
         <li><span><b>La API (FastAPI)</b> entrena el modelo con scikit-learn y lo guarda.</span></li>
         <li><span><b>Con el modelo guardado</b> se predicen casos nuevos y se devuelven las probabilidades.</span></li></ol>
-        <p class="aviso">Este proyecto es un ejercicio académico. Sus resultados no reemplazan un diagnóstico médico.</p></div>""")
+        <p class="aviso">Este proyecto es un ejercicio académico. Sus resultados son solo una estimación y no reemplazan la valoración de un médico.</p></div>""")
     html("""<div class="tarjeta"><h3>Integrantes</h3><div class="personas">
     <div class="persona"><span class="avatar">AH</span><div><b>Aracely Estefanía Herrera Regalado</b><small>Desarrollo de Software · 5to semestre</small></div></div>
     <div class="persona"><span class="avatar lila">MS</span><div><b>Melany Jessenia Sangoquiza Zapata</b><small>Desarrollo de Software · 5to semestre</small></div></div></div>
