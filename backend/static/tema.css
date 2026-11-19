@@ -1,0 +1,41 @@
+/* Tema rosa para la documentacion de la API (/docs). Mismos colores que la interfaz. */
+@font-face { font-family: "Playfair Display"; font-weight: 700; font-style: normal; font-display: swap; src: url("/estaticos/fuentes/playfair-display-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "DM Sans"; font-weight: 400; font-style: normal; font-display: swap; src: url("/estaticos/fuentes/dm-sans-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "DM Sans"; font-weight: 500; font-style: normal; font-display: swap; src: url("/estaticos/fuentes/dm-sans-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "DM Sans"; font-weight: 700; font-style: normal; font-display: swap; src: url("/estaticos/fuentes/dm-sans-latin-700-normal.woff2") format("woff2"); }
+
+:root {
+  --crema: #fff8f9; --rosa-50: #fff1f5; --rosa-100: #ffe3ec; --rosa-300: #f4a3bd; --rosa-400: #ea7fa2; --rosa-500: #dc5f89;
+  --rosa-600: #c24572; --ciruela: #3f2136; --ciruela-2: #6b4560; --menta: #4fae91; --menta-claro: #eefaf5;
+  --borde: rgba(220, 95, 137, .22);
+  --serif: "Playfair Display", Georgia, "Times New Roman", serif;
+  --sans: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+html, body { margin: 0; min-height: 100%; font-family: var(--sans); color: var(--ciruela);
+  background: radial-gradient(1100px 600px at 90% -10%, #ffe0ea 0%, transparent 60%),
+              radial-gradient(900px 600px at -10% 35%, #f1e8ff 0%, transparent 60%), var(--crema); background-attachment: fixed; }
+.swagger-ui, .swagger-ui .opblock-summary-description, .swagger-ui .opblock-description-wrapper p, .swagger-ui table thead tr th,
+.swagger-ui .parameter__name, .swagger-ui .response-col_status, .swagger-ui .tab li, .swagger-ui .btn, .swagger-ui label { font-family: var(--sans); color: var(--ciruela); }
+.swagger-ui .wrapper { max-width: 1040px; padding: 0 24px 60px; }
+.swagger-ui .info { margin: 44px 0 26px; }
+.swagger-ui .info .title { font-family: var(--serif); font-weight: 700; font-size: 2.3rem; color: var(--ciruela); }
+.swagger-ui .info .title small { background: var(--rosa-500); border-radius: 999px; padding: 3px 10px; top: -6px; }
+.swagger-ui .info p, .swagger-ui .info li { font-family: var(--sans); font-size: 1rem; line-height: 1.6; color: var(--ciruela-2); }
+.swagger-ui .info a { color: var(--rosa-600); }
+.swagger-ui .opblock-tag { font-family: var(--serif); font-size: 1.5rem; color: var(--ciruela); border-bottom: 1px solid var(--borde); }
+.swagger-ui .opblock-tag small { font-family: var(--sans); color: var(--ciruela-2); }
+.swagger-ui .opblock { border-radius: 16px; box-shadow: none; overflow: hidden; margin: 0 0 12px; }
+.swagger-ui .opblock .opblock-summary-method { border-radius: 10px; font-family: var(--sans); font-weight: 700; }
+.swagger-ui .opblock .opblock-summary-path { font-family: var(--sans); font-weight: 700; color: var(--ciruela); }
+.swagger-ui .opblock.opblock-get { background: var(--menta-claro); border-color: var(--menta); }
+.swagger-ui .opblock.opblock-get .opblock-summary-method, .swagger-ui .opblock.opblock-get .tab-header .tab-item.active h4 span::after { background: var(--menta); }
+.swagger-ui .opblock.opblock-get .opblock-summary { border-color: var(--menta); }
+.swagger-ui .opblock.opblock-post { background: var(--rosa-50); border-color: var(--rosa-400); }
+.swagger-ui .opblock.opblock-post .opblock-summary-method, .swagger-ui .opblock.opblock-post .tab-header .tab-item.active h4 span::after { background: var(--rosa-500); }
+.swagger-ui .opblock.opblock-post .opblock-summary { border-color: var(--rosa-400); }
+.swagger-ui .btn.execute { background: var(--rosa-500); border-color: var(--rosa-500); color: #fff; border-radius: 999px; }
+.swagger-ui .btn.try-out__btn, .swagger-ui .btn.cancel { border-color: var(--rosa-500); color: var(--rosa-600); border-radius: 999px; }
+.swagger-ui .btn.btn-clear { border-radius: 999px; }
+.swagger-ui select, .swagger-ui input[type=text], .swagger-ui textarea { border-radius: 10px; border: 1px solid var(--borde); }
+.swagger-ui .scheme-container { background: transparent; box-shadow: none; }
+.swagger-ui .responses-inner h4, .swagger-ui .responses-inner h5 { font-family: var(--sans); }
