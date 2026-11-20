@@ -1,8 +1,4 @@
-"""
-Gráficos de la interfaz, dibujados con SVG/HTML desde Python (sin librerías de gráficos).
-Cada función devuelve un texto HTML que app.py muestra con st.markdown(..., unsafe_allow_html=True).
-Las animaciones las hace el CSS (estilos.css), no hay JavaScript.
-"""
+"""Gráficos de la interfaz en SVG/HTML. Cada función devuelve texto HTML para app.py."""
 import math
 import re
 
@@ -13,7 +9,7 @@ PRINCIPALES = ["worst_area", "worst_concave_points", "worst_radius",
                "mean_concave_points", "worst_perimeter", "mean_radius"]
 
 
-# Nombres en lenguaje sencillo para las 30 variables del dataset (mean_*, *_error, worst_*)
+# nombres sencillos de las 30 variables
 BASES = {
     "radius": ("Radio", "distancia del centro de la célula hasta su borde"),
     "texture": ("Textura", "qué tan variada se ve la superficie de la célula en la imagen"),
@@ -63,7 +59,7 @@ def ayuda(nombre):
 
 
 def limpiar(html: str) -> str:
-    """Quita saltos de línea y sangrías: Markdown trataría líneas con 4 espacios como código."""
+    """Quita saltos de línea para que Markdown no lo tome como código."""
     return re.sub(r"\s*\n\s*", " ", html).strip()
 
 
@@ -80,7 +76,7 @@ def fmt_num(v):
     return f"{v:.0f}" if a >= 100 else f"{v:.1f}" if a >= 10 else f"{v:.2f}" if a >= 1 else f"{v:.4f}"
 
 
-# ------------------------------------------------------------------ anillos de métricas
+# Anillos de métricas
 def anillo(valor, color, tam=96):
     c = 2 * math.pi * 40
     return (f'<svg viewBox="0 0 100 100" width="{tam}" height="{tam}">'
@@ -103,7 +99,7 @@ def tarjetas_kpi(m):
         for t, v, d, col in kpis) + "</div>"
 
 
-# ------------------------------------------------------------------ matriz de confusión
+# Matriz de confusión
 def matriz_confusion(cm):
     mx = max(max(f) for f in cm) or 1
 
@@ -123,9 +119,9 @@ def matriz_confusion(cm):
             f'<span class="eje v">Real maligno</span>{celda(cm[1][0], "se le pasó")}{celda(cm[1][1], "acertó")}</div>{nota}')
 
 
-# ------------------------------------------------------------------ curva ROC
+# Curva ROC
 def curva_roc(roc, auc):
-    x0, x1, y0, y1 = 50, 400, 274, 14
+    x0, x1, y0, y1 = 70, 400, 270, 14
     px = lambda x: x0 + x * (x1 - x0)
     py = lambda y: y0 - y * (y0 - y1)
     pts = [f"{px(x):.1f},{py(y):.1f}" for x, y in zip(roc["fpr"], roc["tpr"])]
@@ -134,19 +130,19 @@ def curva_roc(roc, auc):
     rejilla = ""
     for t in (0, .25, .5, .75, 1):
         rejilla += (f'<line x1="{x0}" x2="{x1}" y1="{py(t)}" y2="{py(t)}" stroke="#ffe3ec"/>'
-                    f'<text x="{x0 - 10}" y="{py(t) + 4}" text-anchor="end" font-size="11" fill="#6b4560">{t}</text>'
-                    f'<text x="{px(t)}" y="{y0 + 18}" text-anchor="middle" font-size="11" fill="#6b4560">{t}</text>')
+                    f'<text x="{x0 - 10}" y="{py(t) + 4}" text-anchor="end" font-size="15" fill="#6b4560">{t}</text>'
+                    f'<text x="{px(t)}" y="{y0 + 22}" text-anchor="middle" font-size="15" fill="#6b4560">{t}</text>')
     return (f'<svg viewBox="0 0 420 320" width="100%"><defs><linearGradient id="gr" x1="0" y1="0" x2="0" y2="1">'
             '<stop offset="0" stop-color="#ea7fa2" stop-opacity=".45"/><stop offset="1" stop-color="#c7b3f0" stop-opacity=".08"/>'
             f'</linearGradient></defs>{rejilla}<path d="{area}" fill="url(#gr)"/>'
             f'<line x1="{px(0)}" y1="{py(0)}" x2="{px(1)}" y2="{py(1)}" stroke="#b59aa9" stroke-dasharray="5 5"/>'
             f'<path d="{linea}" fill="none" stroke="#c24572" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>'
-            f'<text x="{px(.52)}" y="{py(.22)}" font-family="Playfair Display,serif" font-weight="700" font-size="22" fill="#c24572">AUC {auc:.3f}</text>'
-            f'<text x="{(x0 + x1) / 2}" y="312" text-anchor="middle" font-size="11.5" fill="#6b4560">Tasa de falsos positivos</text>'
-            f'<text transform="translate(12 {(y0 + y1) / 2}) rotate(-90)" text-anchor="middle" font-size="11.5" fill="#6b4560">Tasa de verdaderos positivos</text></svg>')
+            f'<text x="{px(.52)}" y="{py(.22)}" font-family="Playfair Display,serif" font-weight="700" font-size="28" fill="#c24572">AUC {auc:.3f}</text>'
+            f'<text x="{(x0 + x1) / 2}" y="312" text-anchor="middle" font-size="15" fill="#6b4560">Tasa de falsos positivos</text>'
+            f'<text transform="translate(16 {(y0 + y1) / 2}) rotate(-90)" text-anchor="middle" font-size="15" fill="#6b4560">Tasa de verdaderos positivos</text></svg>')
 
 
-# ------------------------------------------------------------------ importancia de variables
+# Importancia de variables
 def barras_importancia(imp):
     mx = max(i["valor"] for i in imp) or 1e-9
     filas = "".join(
@@ -156,7 +152,7 @@ def barras_importancia(imp):
     return f'<div class="barras-h">{filas}</div>'
 
 
-# ------------------------------------------------------------------ bloque completo de resultados
+# Bloque completo de resultados
 def resultados(m):
     params = " ".join(f"<code>{k}={'None' if v is None else v}</code>" for k, v in m["parametros"].items())
     imp = (f'<div class="tarjeta"><h4>Medidas que más influyen en la decisión (las 10 principales)</h4>{barras_importancia(m["importancias"])}</div>'
@@ -176,7 +172,23 @@ def resultados(m):
     </div>""")
 
 
-# ------------------------------------------------------------------ comparación de modelos
+# Glosario de las métricas
+GLOSARIO = [
+    ("Aciertos (accuracy)", "De todos los casos de prueba, en cuántos acertó el programa."),
+    ("Precisión", "Cuando el programa dijo \"maligno\", ¿cuántas veces tenía razón?"),
+    ("Detección (recall)", "De los casos que sí eran malignos, ¿a cuántos encontró? Es la medida más importante en medicina."),
+    ("Equilibrio (F1)", "Un solo número que combina precisión y detección."),
+    ("Distinción (AUC)", "Qué tan bien separa los casos benignos de los malignos. Mientras más cerca de 1, mejor."),
+    ("Prueba repetida 5 veces", "Se repite la evaluación con 5 grupos distintos de casos (validación cruzada) para confirmar que el resultado no fue casualidad."),
+]
+
+
+def glosario():
+    items = "".join(f'<div class="glo-item"><b>{t}</b><span>{d}</span></div>' for t, d in GLOSARIO)
+    return limpiar(f'<div class="tarjeta"><h3>¿Qué significan los números?</h3><div class="glo-grid">{items}</div></div>')
+
+
+# Comparación de modelos
 def comparacion(lista):
     metricas = [("accuracy", "Aciertos"), ("precision", "Precisión"), ("recall", "Detección"), ("f1", "Equilibrio")]
     x0, x1, y0, y1, lo, hi = 64, 840, 330, 40, 0.85, 1.0
@@ -224,7 +236,7 @@ def comparacion(lista):
     </div>""")
 
 
-# ------------------------------------------------------------------ resultado de un caso nuevo
+# Resultado de un caso nuevo
 def medidor(pm, es_maligno):
     r = 110
     largo = math.pi * r
@@ -258,19 +270,21 @@ def resultado_caso(res, valores, resumen):
                   f'<i class="punto" style="left:{pos(t):.1f}%" title="{etiqueta(n)}: {fmt_num(valores[n])}"></i></div></div>')
     return limpiar(f"""
     <div class="tarjeta salida">
-      <div class="veredicto {'m' if es_m else 'b'}"><span class="tag">Lo que estima el programa</span><h3>Parece {res['diagnostico'].lower()}</h3>
-        {medidor(res['probabilidad_maligno'], es_m)}
-        <p class="sub">El programa estima, con {pct(conf)} de seguridad, que el tumor es probablemente <b>{res['diagnostico'].lower()}</b> ({'canceroso' if es_m else 'no canceroso'}).</p></div>
-      <div class="comparacion"><h4>¿Cómo se compara con los casos reales?</h4>{filas}
-        <div class="leyenda-dot"><span><i style="background:var(--menta)"></i>promedio benigno</span>
-        <span><i style="background:var(--baya)"></i>promedio maligno</span>
-        <span><i style="background:var(--rosa-500);border-radius:50%;width:10px;height:10px"></i>tu caso</span></div>
-        <p class="descargo"><b>{cerca} de {len(PRINCIPALES)}</b> medidas principales se parecen más a las de los casos malignos.</p></div>
+      <div class="caso-grid">
+        <div class="veredicto {'m' if es_m else 'b'}"><span class="tag">Lo que estima el programa</span><h3>Parece {res['diagnostico'].lower()}</h3>
+          {medidor(res['probabilidad_maligno'], es_m)}
+          <p class="sub">El programa estima, con {pct(conf)} de seguridad, que el tumor es probablemente <b>{res['diagnostico'].lower()}</b> ({'canceroso' if es_m else 'no canceroso'}).</p></div>
+        <div class="comparacion"><h4>¿Cómo se compara con los casos reales?</h4>{filas}
+          <div class="leyenda-dot"><span><i style="background:var(--menta)"></i>promedio benigno</span>
+          <span><i style="background:var(--baya)"></i>promedio maligno</span>
+          <span><i style="background:var(--rosa-500);border-radius:50%;width:10px;height:10px"></i>tu caso</span></div>
+          <p class="descargo"><b>{cerca} de {len(PRINCIPALES)}</b> medidas principales se parecen más a las de los casos malignos.</p></div>
+      </div>
       <div class="aviso-clave"><span class="aviso-clave-tit">Importante</span><b>Esto es solo una estimación de un programa y no es un diagnóstico.</b> Únicamente un médico puede confirmarlo: si tienes dudas o notas algún cambio en tu cuerpo, acude a consulta.</div>
     </div>""")
 
 
-# ------------------------------------------------------------------ dona del dataset
+# Dona del dataset
 def dona(res):
     c = 2 * math.pi * 70
     fb = res["benignos"] / res["total"]
