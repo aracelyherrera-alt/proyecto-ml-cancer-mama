@@ -51,13 +51,6 @@ info = llamar("GET", "/modelos")
 variables = llamar("GET", "/variables")
 resumen = llamar("GET", "/resumen")
 
-if "metricas" not in st.session_state:       # si ya había un modelo guardado
-    try:
-        r = requests.get(API + "/metricas", timeout=30)
-        if r.status_code == 200:
-            st.session_state["metricas"] = r.json()
-    except requests.exceptions.ConnectionError:
-        pass
 metricas = st.session_state.get("metricas")
 
 # menú lateral
